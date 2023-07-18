@@ -1,4 +1,5 @@
 import {ethers} from "hardhat";
+
 // @ts-ignore
 import Confirm from 'prompt-confirm';
 
@@ -16,9 +17,7 @@ async function main() {
             .ask(async (answer: any) => {
                 if (answer) {
                     const Contract = await ethers.getContractFactory(contractName);
-                    const contract = await Contract.deploy(name, symbol, amount, {
-                        gasPrice: '15000000000'
-                    });
+                    const contract = await Contract.deploy(name, symbol, amount);
                     await contract.deployed();
                     console.log(
                         `Deployed ${contractName} to ${contract.address}`
