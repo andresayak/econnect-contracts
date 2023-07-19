@@ -116,4 +116,6 @@ contract EConnectNFT is ERC721, Ownable, BlackList, BasicMetaTransaction {
         (bool sent,) = _to.call{value: address(this).balance}("");
         require(sent, "Failed to send Ether");
     }
+
+    receive() external payable virtual {}
 }

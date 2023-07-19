@@ -21,7 +21,11 @@ contract EConnectGov is ERC20, Ownable, BlackList, TransferLock, BasicMetaTransa
      * Token transfer function from the contract address;
      */
     function recoverTokens(address _token, address _to, uint _value) public onlyOwner {
-        IERC20(_token).transfer(_to, _value);
+        if(address(this) == _token){
+            super._transfer(address(this), _to, _value);
+        }else{
+            IERC20(_token).transfer(_to, _value);
+        }
     }
 
     /**
@@ -64,4 +68,13 @@ contract EConnectGov is ERC20, Ownable, BlackList, TransferLock, BasicMetaTransa
     function approve(address spender, uint256 amount) onlyNotBlocked(_msgSender()) public virtual override returns (bool) {
         return super.approve(spender, amount);
     }
+
+    /**
+     * @dev See {IERC20-burn}.
+     */
+    function burn(address _account, uint256 _amount) onlyOwner public virtual {
+        return super._burn( _account,  _amount);
+    }
+
+    receive() external payable virtual {}
 }

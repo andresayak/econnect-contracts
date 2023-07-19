@@ -23,7 +23,11 @@ contract EConnectUtility is ERC20, Ownable, BlackList, TransferLock, BasicMetaTr
      * Token transfer function from the contract address;
      */
     function recoverTokens(address _token, address _to, uint _value) public onlyOwner {
-        IERC20(_token).transfer(_to, _value);
+        if(address(this) == _token){
+            super._transfer(address(this), _to, _value);
+        }else{
+            IERC20(_token).transfer(_to, _value);
+        }
     }
 
     /**
@@ -67,4 +71,13 @@ contract EConnectUtility is ERC20, Ownable, BlackList, TransferLock, BasicMetaTr
         require(!getBlackListStatus(_msgSender()));
         return super.approve(spender, amount);
     }
+
+    /**
+     * @dev See {IERC20-burn}.
+     */
+    function burn(address _account, uint256 _amount) onlyOwner public virtual {
+        return super._burn( _account,  _amount);
+    }
+
+    receive() external payable virtual {}
 }

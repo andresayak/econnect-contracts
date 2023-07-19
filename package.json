@@ -7,7 +7,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy-contracts-testnet": "npx hardhat run scripts/deploy_eConnectGov.ts --network bsc_testnet && npx hardhat run scripts/deploy_eConnectUtility.ts --network bsc_testnet && npx hardhat run scripts/deploy_eConnectNFT.ts --network bsc_testnet",
     "deploy-contracts-mainnet": "npx hardhat run scripts/deploy_eConnectGov.ts --network bsc_mainnet && npx hardhat run scripts/deploy_eConnectUtility.ts --network bsc_mainnet && npx hardhat run scripts/deploy_eConnectNFT.ts --network bsc_mainnet"
-
   },
   "author": "",
   "license": "ISC",

@@ -1,7 +1,7 @@
 import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
 import {expect} from "chai";
 import {ethers} from "hardhat";
-import {createMetaTransaction, ZERO_ADDRESS } from "./helper";
+import {createMetaTransaction} from "./helper";
 
 describe("EConnectUtility", function () {
     async function deployFixture() {
@@ -64,6 +64,23 @@ describe("EConnectUtility", function () {
             expect(await contract.owner()).to.equal(owner.address);
             await contract.transferOwnership(user1.address);
             expect(await contract.owner()).to.equal(user1.address);
+        });
+    });
+
+    describe("recovery BNB", function () {
+        it("should recovered", async function () {
+            const [owner, user1, user2, router, user3, user4] = await ethers.getSigners();
+            const {contract} = await loadFixture(deployFixture);
+
+            const amount = 1;
+            await owner.sendTransaction({
+                value: amount,
+                to: contract.address,
+                gasLimit: 100000
+            });
+            expect(await ethers.provider.getBalance(contract.address)).to.equal(amount);
+            await contract.recoverBNB(owner.address);
+            expect(await ethers.provider.getBalance(contract.address)).to.equal(0);
         });
     });
 });

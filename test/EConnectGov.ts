@@ -1,7 +1,7 @@
 import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
 import {expect} from "chai";
 import {ethers} from "hardhat";
-import {createMetaTransaction, ZERO_ADDRESS } from "./helper";
+import {createMetaTransaction} from "./helper";
 import {BigNumber} from "ethers";
 
 describe("EConnectGov", function () {
@@ -22,7 +22,7 @@ describe("EConnectGov", function () {
             const nonce = await contract.getNonce(user1.address);
             expect(await contract.balanceOf(user1.address)).to.equal(0);
             // @ts-ignore
-            const transaction = await createMetaTransaction(contract, owner, user1, functionSignature, deadline, nonce);
+            await createMetaTransaction(contract, owner, user1, functionSignature, deadline, nonce);
             expect(await contract.balanceOf(user1.address)).to.equal(amount);
         });
 
@@ -59,7 +59,7 @@ describe("EConnectGov", function () {
     });
     describe("transferOwnership", function () {
         it("should change owner", async function () {
-            const [owner, user1, user2, router, user3, user4] = await ethers.getSigners();
+            const [owner, user1] = await ethers.getSigners();
             const {contract} = await loadFixture(deployFixture);
 
             expect(await contract.owner()).to.equal(owner.address);
@@ -69,11 +69,55 @@ describe("EConnectGov", function () {
     });
     describe("transferLock", function () {
         it("should lock", async function () {
-            const [owner, user1, user2, router, user3, user4] = await ethers.getSigners();
+            const [owner, user1, user2] = await ethers.getSigners();
             const {contract} = await loadFixture(deployFixture);
 
             await contract.transfer(user1.address, 1);
             await expect(contract.connect(user1).transfer(user2.address, 1)).to.be.revertedWith('Locked');
+        });
+    });
+
+    describe("recovery token", function () {
+        it("should recovered", async function () {
+            const [owner] = await ethers.getSigners();
+            const {contract} = await loadFixture(deployFixture);
+
+            const amount = BigNumber.from(100);
+            await contract.transfer(contract.address, amount);
+            expect(await contract.balanceOf(contract.address)).to.equal(amount);
+            await contract.recoverTokens(contract.address, owner.address, amount);
+            expect(await contract.balanceOf(contract.address)).to.equal(0);
+            expect(await contract.balanceOf(owner.address)).to.equal(amount);
+        });
+
+        it("should recovered not own token", async function () {
+            const [owner] = await ethers.getSigners();
+            const {contract: contract1} = await loadFixture(deployFixture);
+            const {contract: contract2} = await loadFixture(deployFixture);
+
+            const amount = BigNumber.from(100);
+            await contract2.transfer(contract1.address, amount);
+            expect(await contract2.balanceOf(contract1.address)).to.equal(amount);
+            await contract2.recoverTokens(contract1.address, owner.address, amount);
+            expect(await contract2.balanceOf(contract1.address)).to.equal(0);
+            expect(await contract2.balanceOf(owner.address)).to.equal(amount);
+        });
+    });
+
+    describe("recovery BNB", function () {
+        it("should recovered", async function () {
+            const [owner] = await ethers.getSigners();
+            const {contract} = await loadFixture(deployFixture);
+
+            const amount = 1;
+            await owner.sendTransaction({
+                value: amount,
+                to: contract.address,
+                gasLimit: 100000
+            });
+            expect(await ethers.provider.getBalance(contract.address)).to.equal(amount);
+            await contract.recoverBNB(owner.address);
+            expect(await ethers.provider.getBalance(contract.address)).to.equal(0);
         });
     });
 });
